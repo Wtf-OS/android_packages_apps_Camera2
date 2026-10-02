@@ -169,17 +169,17 @@ public class ExifUtil {
 
         // Flash mode
         Integer flashMode = result.get(CaptureResult.FLASH_MODE);
-        if (flashMode == CaptureResult.FLASH_MODE_OFF) {
+        if (flashMode != null && flashMode == CaptureResult.FLASH_MODE_OFF) {
             addExifTag(ExifInterface.TAG_FLASH, ExifInterface.Flash.DID_NOT_FIRE);
-        } else {
+        } else if (flashMode != null) {
             addExifTag(ExifInterface.TAG_FLASH, ExifInterface.Flash.FIRED);
         }
 
         // White balance
         Integer whiteBalanceMode = result.get(CaptureResult.CONTROL_AWB_MODE);
-        if (whiteBalanceMode == CaptureResult.CONTROL_AWB_MODE_OFF) {
+        if (whiteBalanceMode != null && whiteBalanceMode == CaptureResult.CONTROL_AWB_MODE_OFF) {
             addExifTag(ExifInterface.TAG_WHITE_BALANCE, ExifInterface.WhiteBalance.MANUAL);
-        } else {
+        } else if (whiteBalanceMode != null) {
             addExifTag(ExifInterface.TAG_WHITE_BALANCE, ExifInterface.WhiteBalance.AUTO);
         }
 

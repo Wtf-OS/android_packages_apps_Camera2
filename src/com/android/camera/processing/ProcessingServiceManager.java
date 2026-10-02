@@ -156,7 +156,28 @@ public class ProcessingServiceManager implements ProcessingTaskConsumer {
      * itself automatically and call #stitchingFinished().
      */
     private void startService() {
-        mAppContext.startService(new Intent(mAppContext, ProcessingService.class));
-        mServiceRunning = true;
+        try {
+            mAppContext.startService(new Intent(mAppContext, ProcessingService.class));
+            mServiceRunning = true;
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to start ProcessingService via intent, executing inline fallback thread", t);
+            mServiceRunning = true;
+            new Thread("FallbackProcessingThread") {
+                @Override
+                public void run() {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                    ProcessingTask task;
+                    while ((task = popNextSession()) != null) {
+                        com.android.camera.session.CaptureSession session = task.getSession();
+                        if (session == null) {
+                            session = com.android.camera.app.CameraServicesImpl.instance().getCaptureSessionManager().createNewSession(task.getName(), 0, task.getLocation());
+                        }
+                        Log.d(TAG, "Fallback processing task: " + task.getName());
+                        task.process(mAppContext, com.android.camera.app.CameraServicesImpl.instance(), session);
+                    }
+                    mServiceRunning = false;
+                }
+            }.start();
+        }
     }
 }

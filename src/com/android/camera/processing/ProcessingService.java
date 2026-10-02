@@ -128,16 +128,17 @@ public class ProcessingService extends Service implements ProgressListener {
             mWakeLock.release();
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mServiceController);
-        stopForeground(true);
+        // No stopForeground: we never go foreground (legacy, no FGS permission).
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Starting in foreground.");
+        Log.d(TAG, "Starting without foreground (legacy FGS not available).");
 
-        // We need to start this service in foreground so that it's not getting
-        // killed easily when memory pressure is building up.
-        startForeground(CAMERA_NOTIFICATION_ID, mNotificationBuilder.build());
+        // Do NOT call startForeground: this legacy app has no FOREGROUND_SERVICE
+        // grant on updated installs and its notification is invalid on API 35
+        // (system would schedule-crash the app, uncatchable). The wake lock
+        // plus foreground activity keep the process alive during photo save.
 
         asyncProcessAllTasksAndShutdown();
 
